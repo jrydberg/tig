@@ -119,6 +119,19 @@ case "$1" in
     fi
     ;;
 
+  track)
+    # git track [remote] -- set the auto-target of push/pull for this branch.
+    shift
+    get_current_branch
+    if [ $# -eq 1 ]; then
+      remote="$1"
+    else
+      remote="origin"
+    fi
+    git config "branch.$current_branch.remote" "$remote"
+    git config "branch.$current_branch.merge" "$current_branch"
+    ;;
+
   shelve)
     git stash
     ;;
