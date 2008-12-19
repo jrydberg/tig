@@ -3,26 +3,28 @@
 # wrapper for git, with reasonable defaults, and consistent remote/branch use.
 #
 
+git=${GIT:-`which git`}
+
 # return true if the parameter represents a remote branch, and set vars
 # $remote_site, $remote_branch
 function check_remote_branch {
-  remote_branch=$(echo "$1" | awk -F/ '{ print $2 }')
+  remote_branch=$(echo "$1" | cut -d/ -f2 -s)
   if [ "x$remote_branch" = "x" ]; then
     return 1
   fi
-  remote_site=$(echo "$1" | awk -F/ '{ print $1 }')
+  remote_site=$(echo "$1" | cut -d/ -f1)
   return 0
 }
 
 function get_current_branch {
-  current_branch=$(git name-rev --name-only head 2>/dev/null)
+  current_branch=$($git name-rev --name-only head 2>/dev/null)
 }
 
 
 case "$1" in
   co)
     shift
-    git checkout "$@"
+    $git checkout "$@"
     ;;
 
   fork)
@@ -33,14 +35,14 @@ case "$1" in
     new_branch="$1"
     if [ $# -eq 1 ] && check_remote_branch "$1"; then
       new_branch="$remote_branch"
-      git checkout -b $remote_branch $1
+      $git checkout -b $remote_branch $1
     else
-      echo git checkout -b "$@"
+      echo $git checkout -b "$@"
     fi
     
     # If the branch already exists, just switch to it.
     if [ $? -eq 128 ]; then
-      git checkout $new_branch
+      $git checkout $new_branch
     fi
     ;;
     
@@ -60,12 +62,12 @@ case "$1" in
       shift
       i=$((i+1))
     done
-    git log --topo-order --graph --decorate "${args[@]}"
+    $git log --topo-order --graph --decorate "${args[@]}"
     ;;
     
   merge)
     shift
-    git merge --no-ff "$@"
+    $git merge --no-ff "$@"
     ;;
 
   pull)
@@ -73,12 +75,12 @@ case "$1" in
     if [ $# -eq 1 ]; then
       # git pull <branch>
       if check_remote_branch "$1"; then
-        git pull "$remote_site" "$remote_branch"
+        $git pull "$remote_site" "$remote_branch"
       else
-        git pull "$1"
+        $git pull "$1"
       fi
     else
-      git pull "$@"
+      $git pull "$@"
     fi
     ;;
 
@@ -87,18 +89,18 @@ case "$1" in
     case "$#" in
       0)
         get_current_branch
-        git push origin $current_branch
+        $git push origin $current_branch
         ;;
       1)
-        # git push <branch>
+        # $git push <branch>
         if check_remote_branch "$1"; then
-          git push "$remote_site" "$remote_branch"
+          $git push "$remote_site" "$remote_branch"
         else
-          git push "$1"
+          $git push "$1"
         fi
         ;;
       *)
-        git push "$@"
+        $git push "$@"
         ;;
     esac
     ;;
@@ -108,12 +110,12 @@ case "$1" in
     if [ $# -eq 1 ]; then
       # git rebase <branch>
       if check_remote_branch "$1"; then
-        git rebase "$remote_site" "$remote_branch"
+        $git rebase "$remote_site" "$remote_branch"
       else
-        git rebase "$1"
+        $git rebase "$1"
       fi
     else
-      git rebase "$@"
+      $git rebase "$@"
     fi
     ;;
 
@@ -126,19 +128,19 @@ case "$1" in
     else
       remote="origin"
     fi
-    git config "branch.$current_branch.remote" "$remote"
-    git config "branch.$current_branch.merge" "$current_branch"
+    $git config "branch.$current_branch.remote" "$remote"
+    $git config "branch.$current_branch.merge" "$current_branch"
     ;;
 
   shelve)
-    git stash
+    $git stash
     ;;
     
   unshelve)
-    git stash pop
+    $git stash pop
     ;;
 
   *)
-    git "$@"
+    $git "$@"
     ;;
 esac
