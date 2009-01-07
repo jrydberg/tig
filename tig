@@ -27,25 +27,30 @@ case "$1" in
     $git checkout "$@"
     ;;
 
+  drop)
+    shift
+    $git branch -d "$1" && $git push origin :"$1"
+    ;;
+
   fork)
     # git fork <branch> [<original-branch>]
     shift
-    
+
     # "git fork origin/somebranch" -> make local "somebranch"
     new_branch="$1"
     if [ $# -eq 1 ] && check_remote_branch "$1"; then
       new_branch="$remote_branch"
       $git checkout -b $remote_branch $1
     else
-      echo $git checkout -b "$@"
+      $git checkout -b "$@"
     fi
-    
+
     # If the branch already exists, just switch to it.
     if [ $? -eq 128 ]; then
       $git checkout $new_branch
     fi
     ;;
-    
+
   log)
     shift
     declare -a args
@@ -64,7 +69,7 @@ case "$1" in
     done
     $git log --topo-order --graph --decorate "${args[@]}"
     ;;
-    
+
   merge)
     shift
     $git merge --no-ff "$@"
@@ -92,7 +97,7 @@ case "$1" in
         $git push origin $current_branch
         ;;
       1)
-        # $git push <branch>
+        # git push <branch>
         if check_remote_branch "$1"; then
           $git push "$remote_site" "$remote_branch"
         else
@@ -104,7 +109,7 @@ case "$1" in
         ;;
     esac
     ;;
-    
+
   rebase)
     shift
     if [ $# -eq 1 ]; then
@@ -135,7 +140,7 @@ case "$1" in
   shelve)
     $git stash
     ;;
-    
+
   unshelve)
     $git stash pop
     ;;
