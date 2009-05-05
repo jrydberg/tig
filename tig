@@ -17,7 +17,7 @@ function check_remote_branch {
 }
 
 function get_current_branch {
-  current_branch=$($git name-rev --name-only head 2>/dev/null)
+  current_branch=$($git name-rev --name-only HEAD 2>/dev/null)
 }
 
 
